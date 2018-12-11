@@ -5,7 +5,7 @@ spring:
   application:
     name: epg-chart
   datasource:
-    url: jdbc:log4jdbc:mysql://182.245.29.124:3206/Data?useUnicode=true&characterEncoding=UTF-8
+    url: jdbc:log4jdbc:mysql://182.245.29.100:3206/Data?useUnicode=true&characterEncoding=UTF-8
     username: paput
-    password: paput@2016iptv
+    password: 12345
     driver-class-name: net.sf.log4jdbc.DriverSpy
