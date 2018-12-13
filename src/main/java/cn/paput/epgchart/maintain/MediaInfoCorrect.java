@@ -23,7 +23,7 @@ public class MediaInfoCorrect {
     @Autowired
     JdbcTemplate jdbcTemplate;
 
-    private final static String SQL_GET_MEDIA_INFO = " select ID,MEDIA_CODE,MEDIA_NAME,SERIESFLAG,SP_CODE,ORDER_FLAG,EPISODES,SERIES_PARENT,SERIES_NUM from media_info where type='vod_playing' and SERIESFLAG = ? and id<235458 order by ID desc limit ? ";
+    private final static String SQL_GET_MEDIA_INFO = " select ID,MEDIA_CODE,MEDIA_NAME,SERIESFLAG,SP_CODE,ORDER_FLAG,EPISODES,SERIES_PARENT,SERIES_NUM from media_info where type='vod_playing' and SERIESFLAG = ? order by ID desc limit ? ";
     private final static String SQL_UPDATE_MEDIA_INFO_BY_ID = " update media_info set MEDIA_NAME=?,SERIESFLAG=?,SP_CODE=?,ORDER_FLAG=?,EPISODES=?,SERIES_PARENT=?,SERIES_NUM=? where type='vod_playing' and ID=?";
     private final static String SQL_UPDATE_MEDIA_INFO_BY_CODE = " update media_info set MEDIA_NAME=?,SERIESFLAG=?,SP_CODE=?,ORDER_FLAG=?,EPISODES=?,SERIES_PARENT=?,SERIES_NUM=? where type='vod_playing' and MEDIA_CODE=?";
     private final static String URL_GET_PROGRAM_INFO = "http://182.245.29.104:78/GetProgramInfo?programId=";
@@ -135,7 +135,7 @@ public class MediaInfoCorrect {
             System.out.println(column+":arg2 is null");
         } else if(!arg1.equals(arg2)) {
             re = true;
-            System.out.println(column+":arg1="+arg1+",arg2="+arg2);
+            System.out.println(column + ":[" + arg1 + "," + arg2 + "]");
         }
         return re;
     }
@@ -205,48 +205,6 @@ public class MediaInfoCorrect {
             return sb.toString();
         }
 
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            MediaInfoVO that = (MediaInfoVO) o;
-            boolean eq = true;
-            if(!Objects.equals(this.mediaCode, that.mediaCode)) {
-                eq = false;
-                System.out.println("mediaCode:["+this.mediaCode+","+that.mediaCode+"]");
-            } else if(!Objects.equals(this.mediaName, that.mediaName)) {
-                eq = false;
-                System.out.println("mediaName:["+this.mediaName+","+that.mediaName+"]");
-            } else if(!Objects.equals(this.seriesFlag, that.seriesFlag)) {
-                eq = false;
-                System.out.println("seriesFlag:["+this.seriesFlag+","+that.seriesFlag+"]");
-            } else if(!Objects.equals(this.spCode, that.spCode)) {
-                eq = false;
-                System.out.println("spCode:["+this.spCode+","+that.spCode+"]");
-            } else if(!Objects.equals(this.orderFlag, that.orderFlag)) {
-                eq = false;
-                System.out.println("orderFlag:["+this.orderFlag+","+that.orderFlag+"]");
-            } else if(!Objects.equals(this.episodes, that.episodes)) {
-                eq = false;
-                System.out.println("episodes:["+this.episodes+","+that.episodes+"]");
-            } else if(!Objects.equals(this.seriesParent, that.seriesParent)) {
-                eq = false;
-                System.out.println("seriesParent:["+this.seriesParent+","+that.seriesParent+"]");
-            } else if(!Objects.equals(this.seriesNum, that.seriesNum)) {
-                eq = false;
-                System.out.println("seriesNum:["+this.seriesNum+","+that.seriesNum+"]");
-            }
-            return eq;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(mediaCode, mediaName, seriesFlag, spCode, orderFlag, episodes, seriesParent, seriesNum);
-        }
     }
 
 }
