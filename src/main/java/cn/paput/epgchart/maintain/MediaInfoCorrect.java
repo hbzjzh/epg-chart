@@ -50,37 +50,41 @@ public class MediaInfoCorrect {
     public void correct(@PathVariable(name="flag", required=false) String flag, @PathVariable("limit") int limit){
 				List<MediaInfoVO> mediaList = jdbcTemplate.query(SQL_GET_MEDIA_INFO, new Object[]{flag, limit}, new BeanPropertyRowMapper<>(MediaInfoVO.class));
 				int m = mediaList.size();
-				for(MediaInfoVO voOld : mediaList) {
+        StringBuffer sb;
+        boolean doUpdate;
+        JSONObject info;
+        for(MediaInfoVO voOld : mediaList) {
 						System.out.println(m + "、" + voOld.toString());
-            JSONObject info = getJsonFromGS(voOld.mediaCode);
+						sb = new StringBuffer();
+						info = getJsonFromGS(voOld.mediaCode);
             if(info==null) {
                 voOld.seriesFlag = NAGETIVE;
-                updateMediaInfo(voOld, "无数据");
+                updateMediaInfo(voOld, "无数据", sb);
             }
-            boolean doUpdate = false;
-            doUpdate = ifUpdate(doUpdate, "节目名称", voOld.mediaName, info.getString(节目名称));
+            doUpdate = false;
+            doUpdate = ifUpdate(doUpdate, sb, "节目名称", voOld.mediaName, info.getString(节目名称));
             voOld.mediaName = info.getString(节目名称);
-            doUpdate = ifUpdate(doUpdate, "节目类型", voOld.seriesFlag, info.getString(节目类型));
+            doUpdate = ifUpdate(doUpdate, sb, "节目类型", voOld.seriesFlag, info.getString(节目类型));
             voOld.seriesFlag = info.getString(节目类型);
-            doUpdate = ifUpdate(doUpdate, "供应商", voOld.spCode, info.getString(供应商));
+            doUpdate = ifUpdate(doUpdate, sb, "---------供应商", voOld.spCode, info.getString(供应商));
             voOld.spCode = info.getString(供应商);
-            doUpdate = ifUpdate(doUpdate, "是否付费", voOld.orderFlag, info.getString(是否付费));
+            doUpdate = ifUpdate(doUpdate, sb, "是否付费", voOld.orderFlag, info.getString(是否付费));
             voOld.orderFlag = info.getString(是否付费);
             if(电影.equals(voOld.seriesFlag)) {
                 voOld.episodes = ZERO;
                 voOld.seriesParent = ZERO;
                 voOld.seriesNum = null;
                 if(doUpdate) {
-                    updateMediaInfo(voOld, "电影");
+                    updateMediaInfo(voOld, "电影", sb);
                 }
             } else if(电视剧.equals(voOld.seriesFlag)) {
                 JSONArray sub = info.getJSONArray(剧集列表);
-                doUpdate = ifUpdate(doUpdate, "剧集列表", voOld.episodes, String.valueOf(sub.size()));
+                doUpdate = ifUpdate(doUpdate, sb, "剧集列表", voOld.episodes, String.valueOf(sub.size()));
                 voOld.episodes = String.valueOf(sub.size());
                 voOld.seriesParent = ZERO;
                 voOld.seriesNum = null;
                 if(doUpdate) {
-                    updateMediaInfo(voOld, "电视剧");
+                    updateMediaInfo(voOld, "电视剧", sb);
                     JSONObject item = null;
                     for(int j=0;j<sub.size();j++) {
                         item = sub.getJSONObject(j);
@@ -89,12 +93,12 @@ public class MediaInfoCorrect {
                         voOld.seriesFlag = item.getString(节目类型);
                         voOld.seriesParent = voOld.id;
                         voOld.seriesNum = item.getString(子剧集序号);
-                        updateMediaInfo(voOld, "子剧集");
+                        updateMediaInfo(voOld, "子剧集", sb);
                     }
                 }
             } else if(子剧集.equals(voOld.seriesFlag)) {
                 if(doUpdate) {
-                    updateMediaInfo(voOld, "子剧集");
+                    updateMediaInfo(voOld, "子剧集", sb);
                 }
             } else {
                 System.out.println("无类型：" + voOld.mediaCode);
@@ -103,14 +107,16 @@ public class MediaInfoCorrect {
 				}
     }
 
-    private void updateMediaInfo(MediaInfoVO vo, String memo) {
-        int ar;
+    private void updateMediaInfo(MediaInfoVO vo, String memo, StringBuffer sb) {
+        int ar = 0;
         if(子剧集.equals(vo.seriesFlag)) {
+            sb = new StringBuffer(memo + "《" +vo.mediaName + "》");
             ar = jdbcTemplate.update(SQL_UPDATE_MEDIA_INFO_BY_CODE, new Object[]{vo.mediaName, vo.seriesFlag, vo.spCode, vo.orderFlag, vo.episodes, vo.seriesParent, vo.seriesNum, vo.mediaCode});
         } else {
+            sb.insert(0, memo + "《" +vo.mediaName + "》");
             ar = jdbcTemplate.update(SQL_UPDATE_MEDIA_INFO_BY_ID, new Object[]{vo.mediaName, vo.seriesFlag, vo.spCode, vo.orderFlag, vo.episodes, vo.seriesParent, vo.seriesNum, vo.id});
         }
-        System.out.println(memo + "[" +vo.mediaName + "], 影响:" + ar);
+        System.out.println(sb.toString() + ", 影响:" + ar);
     }
 
     private JSONObject getJsonFromGS(String mediaCode) {
@@ -123,21 +129,18 @@ public class MediaInfoCorrect {
         return null;
     }
 
-    private boolean ifUpdate(boolean old, String column, String arg1, String arg2) {
-        boolean re = false;
-        if(old) {
-            re = true;
-        } else if(arg1==null) {
-            re = true;
-            System.out.println(column+":arg1 is null");
+    private boolean ifUpdate(boolean doUpdate, StringBuffer sb, String column, String arg1, String arg2) {
+        if(arg1==null) {
+            doUpdate = true;
+            sb.append(", " + column+"[null," + arg2 + "]");
         } else if(arg2==null)  {
-            re = true;
-            System.out.println(column+":arg2 is null");
+            doUpdate = true;
+            sb.append(", " + column+"[" + arg1 + ",null]");
         } else if(!arg1.equals(arg2)) {
-            re = true;
-            System.out.println(column + ":[" + arg1 + "," + arg2 + "]");
+            doUpdate = true;
+            sb.append(", " + column + "[" + arg1 + "," + arg2 + "]");
         }
-        return re;
+        return doUpdate;
     }
 
     public static class MediaInfoVO {
