@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author sean
@@ -27,12 +26,12 @@ public class MediaInfoCorrect {
     private final static String SQL_UPDATE_MEDIA_INFO_BY_ID = " update media_info set MEDIA_NAME=?,SERIESFLAG=?,SP_CODE=?,ORDER_FLAG=?,EPISODES=?,SERIES_PARENT=?,SERIES_NUM=? where type='vod_playing' and ID=?";
     private final static String SQL_UPDATE_MEDIA_INFO_BY_CODE = " update media_info set MEDIA_NAME=?,SERIESFLAG=?,SP_CODE=?,ORDER_FLAG=?,EPISODES=?,SERIES_PARENT=?,SERIES_NUM=? where type='vod_playing' and MEDIA_CODE=?";
     private final static String URL_GET_PROGRAM_INFO = "http://182.245.29.104:78/GetProgramInfo?programId=";
+    private final static boolean UPDATE_SWITCH = true;
 
     private final static String HTTP_OK = "200";
 		private final static String RESULT = "result";
     private final static String NAGETIVE = "-1";
     private final static String ZERO = "0";
-    private final static String BLANK = "";
     private final static String 电影 = "0";
     private final static String 电视剧 = "1";
     private final static String 子剧集 = "2";
@@ -111,10 +110,14 @@ public class MediaInfoCorrect {
         int ar = 0;
         if(子剧集.equals(vo.seriesFlag)) {
             sb = new StringBuffer(memo + "《" +vo.mediaName + "》");
-            ar = jdbcTemplate.update(SQL_UPDATE_MEDIA_INFO_BY_CODE, new Object[]{vo.mediaName, vo.seriesFlag, vo.spCode, vo.orderFlag, vo.episodes, vo.seriesParent, vo.seriesNum, vo.mediaCode});
+            if(UPDATE_SWITCH) {
+                ar = jdbcTemplate.update(SQL_UPDATE_MEDIA_INFO_BY_CODE, new Object[] {vo.mediaName, vo.seriesFlag, vo.spCode, vo.orderFlag, vo.episodes, vo.seriesParent, vo.seriesNum, vo.mediaCode});
+            }
         } else {
             sb.insert(0, memo + "《" +vo.mediaName + "》");
-            ar = jdbcTemplate.update(SQL_UPDATE_MEDIA_INFO_BY_ID, new Object[]{vo.mediaName, vo.seriesFlag, vo.spCode, vo.orderFlag, vo.episodes, vo.seriesParent, vo.seriesNum, vo.id});
+            if(UPDATE_SWITCH) {
+                ar = jdbcTemplate.update(SQL_UPDATE_MEDIA_INFO_BY_ID, new Object[] {vo.mediaName, vo.seriesFlag, vo.spCode, vo.orderFlag, vo.episodes, vo.seriesParent, vo.seriesNum, vo.id});
+            }
         }
         System.out.println(sb.toString() + ", 影响:" + ar);
     }
